@@ -1,0 +1,44 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: wp52_mysql57
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+  wordpress:
+    depends_on:
+      - db
+    build: ./wp
+    image: wp52_php7_apache:0.1
+    container_name: wp52
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./var/www/html:/var/www/html
+      - ./etc/apache2/ports.conf:/etc/apache2/ports.conf
+      - ./etc/apache2/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
+    restart: always
+    user: ${CURRENT_UID}
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+  smtp:
+    build: ./mc
+    image: wp52_mc:0.1
+    container_name: wp52_mc
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    depends_on:
+      - wordpress
+volumes:
+    db_data: {}
